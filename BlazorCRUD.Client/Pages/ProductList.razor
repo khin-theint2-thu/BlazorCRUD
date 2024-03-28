@@ -1,0 +1,92 @@
+﻿@page "/product-list"
+@using SharedLibrary.Models
+@rendermode InteractiveServer
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card">
+                  <div class="card-header">
+                        <button type="button" class="btn btn-primary float-end" @onclick="()=>NavigateToProductPage()"> Add Product </button>
+                  </div>
+                </div>
+                @if(Products.Count  > 0)
+                {
+                  
+                  <div class="card-header">
+                        Product List 
+                </div>
+                  <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Product Id</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var product in Products)
+                            {
+                                <tr>
+                                    <td>@product.Id</td>
+                                    <td>@product.Name</td>
+                                    <td>@product.Quantity</td>
+                                    <td>
+                                        <div class="hstack gap-2"> 
+                                            <button type="button" class="btn btn-none btn-info" @onclick="()=>Edit(product)">Edit</button>
+                                                <button type="button" class="btn btn-none btn-danger" @onclick="()=>Delete(product.Id)">Delete</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                   
+                }
+                else
+                {
+                    <div class="alert alert-info">No Products Found!</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code{
+    private List<Product> Products { get; set; }  = new ();
+
+    private async Task LoadProducts(){
+        var products = await ProductService.GetAllProductsAsync();
+        Products.Clear();
+        foreach (var product in products)
+        {
+            Products.Add(product);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Products.Count == 0) // Check if Products is empty before loading
+            await LoadProducts();
+    }
+
+    protected void NavigateToProductPage()
+    {
+
+        NavigationManager.NavigateTo("manage-product");
+    }
+
+
+    private void Edit(Product product){
+        NavigationManager.NavigateTo($"manage-product/{product.Id}");
+    }
+
+    private async Task Delete(int id){
+        var product = await ProductService.DeleteProductAsync(id);
+        await LoadProducts();
+    }
+}
